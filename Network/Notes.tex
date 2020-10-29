@@ -1,0 +1,321 @@
+\documentclass[]{report}
+\usepackage[hmargin=1.25in,vmargin=1in]{geometry} %调整页边距
+% \usepackage[inner=1in,outer=1.25in]{geometry} %书籍左右不等宽排版
+\usepackage[utf8]{inputenc}
+\usepackage[]{ctex} %据说可以直接调用诸如 \kaishu \fangsong \heiti 的命令修改字体
+\usepackage[svgnames]{xcolor} % Using colors
+% \usepackage{background} % To include background images
+\usepackage{fancyhdr} % Needed to define custom headers/footers
+\usepackage[]{xeCJK}
+\setCJKmainfont[BoldFont = STHeiti, ItalicFont = STKaiti]{Songti SC Light} %中文主字体
+\setCJKsansfont[BoldFont = Weibei SC, ItalicFont = HanziPen SC]{Xingkai SC Light} %中文无衬线字体
+\setCJKmonofont[BoldFont = Libian SC, ItalicFont = STFangsong]{Yuanti SC Light} %中文等宽字体
+\setmainfont{Times New Roman} %\rmfamily
+\setsansfont[ItalicFont = American Typewriter]{Comic Sans MS} %\sffamily
+\setmonofont{Courier} %\ttfamily
+\newfontfamily\monaco{Courier} % 用于代码段字体设置
+\newfontfamily\OldCaption{Bodoni 72 Smallcaps Book} %用于全大写字母的标题
+\usepackage{titlesec}
+\titleformat{\chapter}{\centering\huge\bfseries}{第~\thechapter~章}{1em}{}
+\titleformat{\section}{\Large\bfseries}{第~\thesection~节}{1em}{}
+\usepackage{lipsum} %填充文本
+
+\usepackage{ulem} %解决下划线、删除线之类的
+\usepackage{listings}
+\lstset{
+language=C++,
+numberstyle = \monaco,
+basicstyle = \monaco,
+keywordstyle = \color{blue}\bfseries,
+commentstyle=\color[HTML]{006400},
+tabsize = 4,
+%backgroundcolor=\color{bg}
+emph = {int,float,double,char},emphstyle=\color{cyan},
+emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
+
+\makeatletter
+\newif\if@restonecol
+\makeatother
+\let\algorithm\relax
+\let\endalgorithm\relax
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}%[ruled,vlined]{
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}  % Use Input in the format of Algorithm
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % Use Output in the format of Algorithm
+
+\usepackage{amsmath} %数学公式问题
+\usepackage{amsthm} %公式环境，如proof
+\usepackage{booktabs} %三线表
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}} %解决单元格内部换行的问题
+% 比如这个 Beijing & 0,5 & 1,6 & 2,7 & 3,8 & 4,9 & The number changes every 3 months \\
+% 改成这个 \tabincell{l}{Beijing}& \tabincell{c}{0,5}& \tabincell{c}{1,6}& \tabincell{c}{2,7}& \tabincell{c}{3,8}& \tabincell{c}{4,9}& \tabincell{c}{The number changes \\ every 3 months} \\
+% 一个单元格过长，整行都需要修改
+% 可以配合 \resizebox*{h-width}{v-width}{contents, e.g.tabular} 使用
+
+\usepackage{mathrsfs} %在公式里面使用那个最花的字体
+\usepackage{amssymb} %公式里面用空心黑体和旧式字体
+\usepackage{amssymb} %AMS符号
+\usepackage{amsthm} %AMS定理环境
+
+\usepackage{markdown} %使用markdown语法，在编译时需要打开 shell-escape 标记，即 $ xelatex --shell-escape example.tex
+\markdownSetup{hashEnumerators = true} %允许使用 #. 的方式编写有序列表
+\markdownSetup{inlineFootnotes = true} %允许使用脚注形式的超链接，调用语法为 [anchor](uri), ^[footnote], <uri>
+\markdownSetup{fencedCode = true} %以反引号和缩进来插入代码段，相当于 verbatim
+\markdownSetup{
+  pipeTables = true
+} %支持表格的用法 (图片已经在markdown包里面支持了)
+% \usepackage{booktabs} %解决三线表的线条粗细问题
+
+\usepackage{graphicx} %插入图片
+\usepackage{pdfpages} %插入PDF文件
+\usepackage{makeidx}
+
+\usepackage{tikz} %带圈字符
+\usepackage{etoolbox} %带圈字符 (提供robustify)
+\usepackage{enumitem}
+\newcommand*{\circled}[1]{\lower.7ex\hbox{\tikz\draw (0pt, 0pt)%
+    circle (.5em) node {\makebox[1em][c]{\small #1}};}} %新定义命令：带圈字符
+\robustify{\circled}
+% \usepackage{enumerate} %有序列表
+
+\usepackage{hyperref} %超链接
+% \usepackage[hidelinks]{hyperref} %隐藏超链接的红框
+\markdownSetup{
+  inlineFootnotes = true,
+  renderers = {
+    link = {\href{#3}{#1}},
+  }
+} % markdown块中使用直接点进去的超链接
+% \setlist[enumerate,1]{label=(\arabic*).,font=\textup,leftmargin=7mm,labelsep=1.5mm,topsep=0mm,itemsep=-0.8mm}
+% \setlist[enumerate,2]{label=(\alph*).,font=\textup,leftmargin=7mm,labelsep=1.5mm,topsep=-0.8mm,itemsep=-0.8mm}
+
+\usepackage{braket}
+
+%%%%%% Setting up the style
+
+% \setlength\parindent{0pt} % Gets rid of all indentation
+% \backgroundsetup{contents={\includegraphics[width=\textwidth]{ustc-name.pdf}},scale=0.4,placement=top,opacity=0.6,color=cyan,vshift=-20pt} %  USTC Logo
+
+\pagestyle{fancy} % Enables the custom headers/footers
+
+% 使用默认的Chapter页眉
+% \lhead{} \rhead{} % Headers - all  empty
+
+% \title{\vspace{-1.8cm}  \color{DarkRed} Laboratory Rotation Report}
+% \subtitle{Title of the proposal % Title of the rotation project
+% \vspace{-2cm} }
+% \date{\today} % No date
+
+\lfoot{\color{Grey} \textit{上官凝}}  % Write your name here
+\rfoot{ \color{Grey} 计算机网络 }
+\cfoot{\color{Grey} \thepage}
+
+\renewcommand{\headrulewidth}{0.0pt} % No header rule
+\renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
+
+\title{{\huge {计算机网络笔记}}}
+\author{上官凝}
+\date{\today}
+
+\linespread{1.3} %行间距为1.3倍默认间距 (1.3 x 1.2倍字符宽度)
+
+\makeindex
+
+\begin{document}
+\theoremstyle{definition} \newtheorem{theorem}{Thm}[section] %定义一个定理Thm，序号为section的下一级序号
+\theoremstyle{definition} \newtheorem{definition}{Def}[section] %定义一个定义Def，序号为section的下一级序号
+\theoremstyle{plain} \newtheorem{lemma}{lemma}[section] %引理
+
+	\maketitle
+	\newpage
+
+	\tableofcontents
+	\newpage
+
+
+	\chapter{计算机网络概述}
+	\chapter{应用层}
+	\section{应用层协议原理}
+		网络核心中没有应用层功能，网络应用只在端系统上存在，快速网络应用开发和部署。应用层可能的应用架构：客户-服务器模式(C/S)，或者对等模式(P2P)，或者混合体
+		\subsection{客户-服务器模式}
+		服务器：一直运行，并有固定的IP和周知的端口号
+	\section{Web和HTTP}
+		\subsection{用户-服务器状态：cookies}
+		cookies是在\textit{用户端}系统中维护的，由用户的浏览器管理
+	\section{FTP}
+	\section{Email}
+	\section{DNS}
+	\section{P2P应用}
+	\section{CDN}
+	\section{TCP socket 编程}
+	\section{UDP socket 编程}
+
+	\chapter{运输层}
+	\section{概述和运输层服务}
+		在应用程序看来，运输层（PPT为\textit{传输层}）为运行在不同主机上的应用进程提供了进程间的逻辑通信。从应用程序的位置来看，通过逻辑通信，运行不同进程的主机好像直接相连一样；实际上，这些主机也许位于地球的两侧通过很多路由器和多种不同类型的链路相连。同应用层一样，运输层也是只有运行在端系统上的。在发送方，将应用层的报文（拆分）并封装为报文段；在接收方做逆处理，从收到的报文段中取出载荷，重组为报文。\par
+		网络层服务是主机间的\textit{逻辑}通信，而运输层是进程间的逻辑通信，它依赖于网络层的服务（继承带宽、延迟的限制）并对网络层的服务进行增强（解决数据丢失、顺序混乱，并加密）。有些服务是可以加强的：不可靠$\to$可靠、安全。但有些服务是不可以被加强的：带宽，延迟\par
+		类比：两个家庭的通信（Ann家的12个小孩给另Bill家的12个小孩发信）
+		\begin{enumerate}
+			\item 主机：家庭
+			\item 进程：小孩
+			\item 应用层报文：信封中的信件（可以类比信封为包装的报文段附加的部分）
+			\item 传输协议：Ann 和 Bill（为家庭小孩提供复用解复用服务）
+			\item 网络层协议：邮政服务（家庭-家庭的邮包传输服务）
+		\end{enumerate}
+		在本书中，我们将TCP和UDP的分组统称为\textit{报文段}，而将\textit{数据报}名称留给网络层分组。\par
+		TCP和UDP最基本的责任是，将两个端系统间IP的交付服务扩展为运行在端系统上的两个进程之间的交付服务。将主机间交付扩展到进程间交付被称为运输层的多路复用与多路分解(transport-layer multiplexing and demultiplexing)。TCP力求为每一个通过一条拥塞网络链路的连接平等地共享网络链路带宽。
+	\section{多路复用与解复用}
+		\begin{enumerate}
+			\item 在发送方主机多路复用：从多个套接字接收来自多个进程的报文，根据套接字对应的IP地址和端口号等信息对报文段用头部加以封装(该头部信息用于以后的解复用)
+			\item 在接收方主机多路解复用：根据报文段的头部信息中的IP地址和端口号将接收到的报文段发给正确的套接字(和对应的应用进程)
+		\end{enumerate}
+		为了将报文交给正确的套接字
+		\begin{enumerate}
+			\item 主机中每个套接字应分配一个唯一的标识
+			\item 报文段中有特殊字段指示要交付的套接字
+			\item 发送方传输层需在报文段中包含目的套接字标识(多路复用)
+			\item 接收方传输层需将报文段中的目的套接字标识与本地套接字标识进行匹配，将报文段交付到正确的套接字(多路分解)
+		\end{enumerate}
+		回忆一下2.7节，一个进程（作为网络应用的一部分）有一个或多个套接字，它们相当于在网络和进程之间传递数据的门户
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.4]{images/Progress_Socket_and_TCP.jpg}
+				\caption{应用进程、套接字、运输层}
+			\end{minipage}
+		\end{figure}
+		端口号是socket标识的重要组成部分，是一个16位的二进制数，其中0～1023作为保留端口号给公共域协议使用，称众所周知的端口号。一般实现公共域协议的服务器会绑定到这个区域内。在主机上的每一个套接字都能够分配到一个端口号，当接收方传输层接收到一个UDP报文时，检查其中的目标端口号，并将这个报文交付到具有该端口号的套接字。\par
+		值得注意的是，在多路解复用的过程中，UDP的socket选择标识为报文段中的二元组（目的IP，目标端口号），而TCP用的标识是（源IP，源PORT，目标IP，目标PORT）的四元组。所以对于UDP，具备相同目标IP地址和目标端口号，即使是源IP地址或/且源端口号不同的IP数据报，也会被传到相同的目标UDP套接字上。而对于TCP，服务器能够在一个TCP端口上同时支持多个TCP套接字：每个套接字由其四元组标识(有不同的源IP和源PORT)。比如Web服务器对每个连接客户端有不同的套接字(非持久对每个请求有不同的套接字)。
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.4]{images/TCP_Socket_Ports.pdf}
+			\end{minipage}
+		\end{figure}
+		在上图的实际实现中，有一个初始的socket，每接收到一个对应到本PORT的连接请求就“fork”出来一个新的socket来相应
+	\section{无连接传输：UDP}
+		UDP即用户数据报协议，其报文结构为源端口号、目的端口号、长度、检验和（奇偶校验）应用数据（报文）。对于UDP检验和的确定，其规则\href{https://www.zhihu.com/question/66620337}{如下}：UDP校验和就是二进制反码求和（先求和然后再求反码），但在求和过程中假如首位溢出需要进位，需要\textbf{回卷}，即把前面多出去的1加到最后。比如下面这个例子：\par
+		两组数据分别为1001和1111，则求和时，由于首位溢出需要回卷，则为：
+		\[\begin{aligned}
+			1001&\\
+			1111&\\
+			1&\\
+			----&\\
+			1001&
+		\end{aligned}\]\par
+		取反码得到校验和为$0110$。在接收端进行校验时，将校验范围与校验和相加，若为0xFFFF则通过校验
+	\section{可靠数据传输的原理}
+		可靠数据传输（rdt, reliable data transfer）在应用层、传输层、数据链路层都很重要。可靠数据传输命题大致如下图所示：
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.4]{images/RDT_and_Unreliable_Channel.pdf}
+			\end{minipage}
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.1]{images/KeKaoShuJuChanShuZongJie.jpg}
+			\end{minipage}
+		\end{figure}
+		\subsection{RDT 1.0：经完全可靠信道的可靠数据传输}
+			这是最简单的情形。注意到下列问题是重要的，发送方和接收方有\textbf{各自的}FSM。发送方和接收方各自只有一个状态。\footnote{本书使用的FSM规范：引起变迁的事件先是在表示变迁的横线上方，事件发生时所采取的动作显示在横线下方，如果事件/动作为空，则使用符号$\wedge$，以分别明确地表达缺少动作或事件。初始状态用虚线表示}
+			\begin{figure}[h!]
+				\centering
+				\begin{minipage}{40em}
+					\centering
+					\includegraphics[scale = 0.4]{images/rdt_1_0.pdf}
+				\end{minipage}
+			\end{figure}
+			在这个简单的协议中，\textit{一个单元数据和一个分组没有区别}；因为信道完全可靠，接收端不需要反馈信息；由于假定了接收速率和发送速率一样，也不需要限流
+		\subsection{RDT 2.0：经具有比特差错信道的可靠数据传输}
+			假定顺序不被打乱，但是有些比特可能受损（翻转）。处理此类模型的基本思想是“基于肯定确认和否定确认的重传机制的可靠数据传输协议”，称为自动重传请求协议(Automatic Repeat reQuest, ARQ)。ARQ使用了以下4种机制（书上没写第一个）：
+			\begin{enumerate}
+				\item 发送方差错控制编码、缓存
+				\item 差错检测：使用校验码
+				\item 接收方反馈：接收方向发送方回送控制报文（“肯定确认”ACK和“否定确认”NAC）
+				\item 重传：收到有差错的需要重传
+			\end{enumerate}
+			\begin{figure}[h!]
+				\centering
+				\begin{minipage}{40em}
+					\centering
+					\includegraphics[scale = 0.4]{images/RDT_2_0.pdf}
+				\end{minipage}
+			\end{figure}
+			注意下列事实很重要：当发送方处于等待ACK或NAK的状态时，它\textbf{不能}从上层获得更多的数据。因此rdt2.0这样的协议被称为\textbf{停等}(stop-and-wait)协议
+		\subsection{RDT 2.1：发送方处理出错的ACK/NAK}
+			rdt2.0有一个fatal flaw，即由于信道的不可靠性，无法保证在反馈信号回送给发送方时，反馈信息分组可以无误到达。所以在除去增加纠错比特位使得接收方可以直接恢复原有信息这种办法以外，还可以采取发送方冗余重传的方式。收到损坏的ACK/NAK分组时，直接重传即可。但是这种方案可能会在接收方造成分组冗余，于是可以在发送分组上加一个序号（标志位），表示是初传还是重传
+		\subsection{RDT 2.2：不使用NAK的协议}
+			\begin{enumerate}
+				\item 接收方
+				\begin{enumerate}
+					\item 对每一个正确接收的分组发送ACK
+					\item ACK中显式携带所确认分组的序号
+					\item 若收到出错的分组、或不是期待接收的分组，重发对前一个正确接收分组的ACK
+				\end{enumerate}
+				\item 发送方：若ACK的序号不是所期待的(表明当前分组未被确认)，重发当前分组
+				\item 为后面的一次发送多个数据单位做一个准备
+				\begin{enumerate}
+					\item 一次能够发送多个
+					\item 每一个的应答都有:ACK，NACK;麻烦
+					\item 使用对前一个数据单位的ACK，代替本数据单位的nak
+					\item 确认信息减少一半，协议处理简单
+				\end{enumerate}
+			\end{enumerate}
+		\subsection{RDT 3.0：经具有比特差错和分组丢失的信道的可靠信息传输}
+			使用一个倒计时装置，发送方等待ACK一个合理的时间（链路层的timeout时间是确定的，传输层timeout时间是适应式的），到时还没有收到ACK就重传。问题是如果仅仅是延迟了，可能会导致数据冗余。用序列号可以解决，但是接收方在发出ACK时必须指明接收的序列号。因为分组序号在0和1之间交替，因此rdt3.0有时被称为比特交替协议\par
+			需要引起注意的是，尽管rdt3.0是一个正确的协议，其停等协议的属性导致了它的性能不佳
+		\subsection{流水线可靠数据传输协议}
+			参考多周期CPU和流水线CPU的构造，想想为什么会有流水（并行）和如何抛出精确异常（回退N步和选择重传）。为了选择重传，接收方需要设置缓冲区缓存失序的包。\par
+			流水线技术对可靠数据传输可以带来如下影响：
+			\begin{enumerate}
+				\item 必须增加序号范围，因为每一个输送的分组（\textbf{不计算重传的}）必须有一个唯一的序号，而且也许由多个在输送中的未确认报文
+				\item 协议的发送方和接收方需缓存多个分组。发送方需那些已发送但没有确认的分组（可能重传），接收方需要已经正确接受的分组（可能乱序或者有中间的分组丢失）
+				\item 所需序号范围和对缓冲区的要求取决于数据传输协议如何处理丢失、损坏以及延迟过大的分组。
+			\end{enumerate}\par
+			传输的窗口包括可以发送但还没有发出去的分组，和已经发出去但还没有ACK的分组，也有可能包括已经ACK的分组。他只是要求已发出去但没有被确认的包的数量最多为N，最坏情况下，窗口中的包都是发出去却未收到ACK的。\par
+			处理异常主要有两种方法：回退N步（GBN）和选择重传（SR）
+		\subsection{回退N步}
+			允许发送方发送多个分组而不需要等待确认。GBN的基本思想是，将分组按照一个数组进行放置，一个滑动窗口作为分组的可视范围，那些已被发送但还没有确认的，以及（由于收到ACK而）做好准备发送的分组的许可序号范围。\par
+			从另一个角度来看，许可序号是有限的，当一个ACK回到发送方时，就将这个序号传递给下一个没有被分配序号的分组，让他称为“可用，还未发送”状态。这类似于一种流水的折返跑接力赛，假设共有N个接力棒（窗口长度），拿到接力棒的选手进入准备状态（窗口内），这些选手每经过一定的时间就出发，到达终点就返回（ACK），返回之后将接力棒交给正好在窗口之后的分组。\par
+			分组序号承载在分组首部的一个固定长度的字段中，TCP有一个32bit的序号字段，不过它是按照字节流进行计数的\par
+			GBN的工作原理简单来说，就是
+			\begin{enumerate}
+				\item 哪里跌倒从哪里站起来：一旦某一个分组传输失败，那后面的都需要重新传输
+				\item 最高ACK：接收方仅对正确收到的、序号连续的一系列分组中的最高序号进行确认
+				\item 失序复读：若收到失序的分组，丢弃（不在接收端缓存），并重发前一次（或者再之前）的ack分组（已正确收到、序号连续的一系列分组中的最高序号）
+				\item 累积确认：若ACK包含序号q，表明“序号至q的分组均正确收到”
+				\item 一次性滑动：如果收到序号q的ACK（即使没有收到之前的），整体滑动发送窗口，使基序号= q+1
+				\item 超时重传：发送方只对基序号分组使用一个定时器，发送方重传发送窗口中从基序号开始的所有分组
+			\end{enumerate}
+			计时：GBN在应对超时采用的是维护一个计时器，记录最早的已发送的但还未确认的分组
+			\begin{figure}
+				\centering
+				\begin{minipage}{40em}
+					\centering
+					\includegraphics[scale = 0.35]{images/GBN_Sender_Time_Counter.pdf}
+				\end{minipage}
+			\end{figure}
+		\subsection{选择重传}
+			SR协议通过让发送方仅重传那些它怀疑在接收方出错（丢失或受损）的分组而避免了不必要的重传。
+			SR协议与GBN有一些不同：因为SR的每一个分组都是独立的
+			\begin{enumerate}
+				\item 计时器：SR的每一个分组都要有自己的一个计时器，因为超时发生后只能发送一个分组
+				\item 窗口移动：如果收到ACK是send\_base（窗口的第一个），窗口基序号移动到具有最小序号的未确认分组处
+				\item 发送新的分组：（这两个都是）发送在窗口内且还没发出去的分组
+				\item 收到ACK：标记这个分组为已接受
+				\item 重复ACK：接收方在接收到窗口头之前的分组时，还是需要发送ACK，因为这个分组有可能时因为它的ACK没有成功到达发送方或者发送方超时，导致发送方重传，所以还是需要通知发送方
+				\item 窗口大小：窗口长度必须小于等于序号空间的一半
+			\end{enumerate}
+	\section{面向连接的传输：TCP}
+		TCP即传输控制协议
+		\subsection{段结构}
+		\subsection{可靠数据传输}
+		\subsection{流量控制}
+		\subsection{连接管理}
+	\section{拥塞控制原理}
+	\section{TCP拥塞控制}
+\end{document}
