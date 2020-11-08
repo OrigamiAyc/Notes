@@ -127,6 +127,12 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 \theoremstyle{plain} \newtheorem{lemma}{lemma}[section] %引理
 
 	\maketitle
+	\newpage
+
+	\tableofcontents
+	\newpage
+
+	\chapter{词法分析}
 	\begin{figure}
 		\centering
 		\begin{minipage}{40em}
@@ -135,12 +141,6 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 			\caption{编译器总览}
 		\end{minipage}
 	\end{figure}
-	\newpage
-
-	\tableofcontents
-	\newpage
-
-	\chapter{词法分析}
 	词法分析器的任务是把构成源程序的字符流翻译成词法记号流。其目的是将输入字符串识别为有意义的子串
 	\begin{enumerate}
 		\item 子串的种类(Name)
@@ -148,6 +148,7 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 		\item 可描述具有相同特征的子串的模式(Pattern)
 	\end{enumerate}
 	\section{词法记号及属性}
+		词法记号由记号名和可选的属性值构成的二元组，经常使用记号名来引用记号。一个记号的模式描述属于该记号的词法单元的形式。词法单元是源程序中匹配一个记号模式的字符序列，它由词法分析器识别为该记号的一个实例
 
 	\chapter{语法分析}
 	\textit{输入：词法分析获得的记号序列；输出：程序的语法树}。需要一种可以描述合法记号序列的语言、一种可以区分合法和非法的记号序列的方法。正则表达式不能用于描述配对或嵌套的结构，这是因为有限自动机不能记录重复访问同一状态的次数。\par
