@@ -125,6 +125,7 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 \begin{document}
 \theoremstyle{definition} \newtheorem{theorem}{Thm}[section] %定义一个定理Thm，序号为section的下一级序号
 \theoremstyle{definition} \newtheorem{definition}{Def}[section] %定义一个定义Def，序号为section的下一级序号
+\theoremstyle{definition} \newtheorem{formula}{Formula}[section] %定义一个定义Formula，序号为section的下一级序号
 \theoremstyle{plain} \newtheorem{lemma}{lemma}[section] %引理
 
 	\maketitle
@@ -133,13 +134,33 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 	\tableofcontents
 	\newpage
 
-	\chapter{基础知识}
 	算法书的：
 	\begin{enumerate}
 		\item \href{https://ita.skanev.com/08/03/02.html}{答案1}
 		\item \href{https://sites.math.rutgers.edu/~ajl213/CLRS/CLRS.html}{答案2}
 		\item \href{https://www.cnblogs.com/alantu2018/category/1163289.html}{cnblogs的一些文章合集}
 	\end{enumerate}
+	\chapter{基础知识}
+	\section{循环不变式}
+		循环不变式与插入排序的正确性：必须证明三条性质
+		\begin{enumerate}
+			\item 【初始化】循环的第一次迭代之前，它为真
+			\item 【保持】如果循环的某次迭代之前它为真，那么下次迭代之前它仍为真
+			\item 【终止】在循环终止时，不变式为我们提供一个有用的性质，该性质有助于证明算法是正确的
+		\end{enumerate}\par
+		当循环是for循环时，在第一次开始迭代之前，我们将检查循环不变式的时刻是在对循环计数变量对初始赋值后，在循环头对第一次测试之前。
+	\section{时间复杂度}
+		\begin{formula} 渐进紧确界\par
+		\[\Theta(g(n))=\{f(n)\mid\exists c_1,c_2,n_0\in\mathcal{R}^+,s.t.\forall n\ge n_0,0\le c_1g(n)\le f(n)\le c_2g(n)\}\]
+		\end{formula}
+		\begin{formula}
+			渐进上界\par
+			\[O(g(n))=\{f(n)\mid\exists c,n_0\in\mathcal{N}^+,s.t.\forall n\ge n_0,0\le f(n)\le cg(n)\}\]
+		\end{formula}
+		\begin{formula}
+			渐进下界\par
+			\[\Omega(g(n))=\{f(n)\mid\exists c,n_0\in\mathcal{N}^+,s.t.\forall n\ge n_0,0\le cg(n)\le f(n)\}\]
+		\end{formula}
 	\chapter{以比较为基础的排序算法}
 	先引入几个评判标准的概念：
 	\begin{enumerate}
@@ -149,7 +170,7 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 	\end{enumerate}
 	以下六种方法，前三种（插入排序、选择排序和冒泡排序）是比较基础的排序算法，而后面三种（希尔排序、堆排序和快排）是效率比较高的。
 	\section{插入排序}
-		插入排序({\OldCaption{Insertion-Sort}})的总体思想是保持一个已经排序完成的DONE序列，类比摸扑克牌并将其顺序置入收卡中
+		插入排序({\OldCaption{Insertion-Sort}})的总体思想是保持一个已经排序完成的DONE序列，类比摸扑克牌并将其顺序置入手牌中
 		\begin{algorithm}
 			\caption{{\OldCaption{Insertion-Sort}}(A)}
 			\ForAll{$j=2$to$A.length$}{
@@ -277,6 +298,6 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 		本章将讨论一个由n个互异(distinct)元素构成的集合中选择第i个顺序统计量($X_{(i)}$)的问题
 	\section{最小值和最大值}
 		显然，想要得到一组数据的$\min$和$\max$，最少需要$O(n)$的时间（因为所有数据总要遍历一遍），同时由于比较$n-1$次总能出结果，故最好的次数就是$n-1$。若想要同时找出最小值和最大值，那么就有一种好的算法，只需要最多$3\lceil n/2\rceil$次：对输入的一对元素相互进行比较，然后把较小的与当前最小值比较，较大的与当前最大值进行比较。
-	\section{期望为限行时间的选择算法}
+	\section{期望为线性时间的选择算法}
 		如果想要找到这个集合中的$X_{(k)}$，那么采取一个类似于快排的分治策略：取一个分割点，如果这个点的排序小于k，那么就在高位集合递归，反之在低位集合
 \end{document}

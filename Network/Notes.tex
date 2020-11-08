@@ -135,16 +135,115 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 
 
 	\chapter{计算机网络概述}
+	\section{什么是internet}
+		一个网，或者图的角度来理解，结点包括主机及其上的应用程序，和路由器、交换机等网络交换设备；边包括通信链路，分为接入网链路和主干链路。还有协议，协议定义了在两个或多个通信实体之间交换的报文格式和次序，以及在报文传输和/或接收或其他事件方面所采取的动作
+	\section{网络边缘}
+		端系统（主机）、C-S模式、P2P模式。网络设施的TCP和UDP服务
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.13]{images/TCP_and_UDP.jpg}
+				\caption{TCP与UDP}
+			\end{minipage}
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.27]{images/TCP_and_UDP_2.pdf}
+				\caption{TCP与UDP}
+			\end{minipage}
+		\end{figure}
+	\section{网络核心}
+		电路交换和分组交换\par
+		电路交换：为线路预留端到端资源，链路带宽（尤其是瓶颈带宽）决定了通信能力，专用资源不共享，一旦建立起来就可以保证性能，需要建立连接。网络资源（如带宽）被划分成片，可以频分 (FDM)、时分 (TDM)、波分 (WDM)\par
+		分组交换：存储-转发（分组每次移动是一跳），在转发之前，结点必须收到整个分组\par
+		分组交换可以提升网络的容量：假设线路是1Mbps，每个用户在活跃的时候用掉100kbps，有10\%的时间是活跃的。若使用分组交换，则$\ge10$个用户活跃的概率，由二项分布可得为\[1-\sum_{n=0}^9{35\choose n}p^n(1-p)^{35-n}\]
+	\section{分组交换中的时延、丢包和吞吐量}
+		分组延迟的来源有四：结点处理延迟、排队延迟、传输延迟、传播延迟。传输延迟是指将分组发送到链路上的时间。
+		\[d_{nodel}=d_{proc}+d_{queue}+d_{trans}+d_{prop}\]\par
+	\section{协议层次和服务类型}
+		\subsection{服务和服务访问点}
+		\begin{enumerate}
+			\item 服务(Service)：低层实体向上层实体提供它们之间的通信的能力
+			\begin{enumerate}
+				\item 服务用户(service user)
+				\item 服务提供者(service provider)
+			\end{enumerate}
+			\item 原语(primitive)：上层使用下层服务的形式，高层使用低层提供的服务，以及低层向高层提供服务都是通过服务访问原语来进行交互的
+			\item 服务访问点 SAP (Services Access Point) ：上层使用下层提供的服务通过层间的接口
+			\begin{enumerate}
+				\item 例子：邮箱
+				\item 地址(address)：下层的一个实体支撑着上层的多个实体，SAP有
+				标志不同上层实体的作用
+				\item 可以有不同的实现，队列
+				\item 例子：传输层的SAP：端口(port)
+			\end{enumerate}
+		\end{enumerate}
+		\subsection{服务和协议}
+		\begin{enumerate}
+			\item 服务与协议的区别
+			\begin{enumerate}
+				\item 服务(Service):低层实体向上层实体提供它们之间的通信的能力,是通过原语(primitive)来操作的,垂直
+				\item 协议(protocol):对等层实体(peer entity)之间在相互通信的过程中,需要遵循的规则的集合,水平
+			\end{enumerate}
+			\item 服务与协议的联系
+			\begin{enumerate}
+				\item 本层协议的实现要靠下层提供的服务来实现
+				\item 本层实体通过协议为上层提供更高级的服务
+			\end{enumerate}
+		\end{enumerate}
+
 	\chapter{应用层}
 	\section{应用层协议原理}
+		\subsection{网络应用架构}
 		网络核心中没有应用层功能，网络应用只在端系统上存在，快速网络应用开发和部署。应用层可能的应用架构：客户-服务器模式(C/S)，或者对等模式(P2P)，或者混合体
-		\subsection{客户-服务器模式}
-		服务器：一直运行，并有固定的IP和周知的端口号
+		\paragraph{客户-服务器模式}
+		服务器：一直运行，并有固定的IP和周知的端口号；客户机：与互联网有间歇性的连接，可能是动态IP地址，不直接与其它客户端通信
+		\paragraph{对等体体系结构}
+		每一个节点既是客户端又是服务器；自扩展性——新peer节点带来新的服务能力，当然也带来新的服务请求；参与的主机间歇性连接且可以改变IP地址；难以管理
+		\subsection{进程通信}
+		不同主机上的进程通过交换报文进行通信。对每对通信进程，我们通常将这两个进程之一标识为客户，另一个标识为服务器。其各自的定义如下：
+		\begin{quote}
+			\textit{在一对进程之间的通信会话场景中，发起通信（即在该回话开始时发起与其他进程的联系）的进程被标识为客户，在回话开始时等待联系的是服务器}
+		\end{quote}
+		进程编址需要IP地址和端口号
+		\subsection{因特网提供的运输服务}
+		因特网（更一般的是TCP/IP网络）为应用程序提供了两个运输协议，即UDP和TCP。
+		\paragraph{TCP Service}
+		TCP服务模型包括面向连接服务和可靠数据传输服务。TCP链接是全双工的，即连接双方的进程可以在此链接上同时进行报文收发，当应用程序结束发送时，需要拆除该链接。TCP还有拥塞控制机制
 	\section{Web和HTTP}
+		\subsection{HTTP概况}
+		web页面是由对象组成的。对象可以是HTML文件、JPEG图像、Java小程序、声 音剪辑文件等。Web页含有一个基本的HTML文件，该基本HTML文 件又包含若干对象的引用(链接)。通过URL对每个对象进行引用。访问协议，用户名，口令字，端口等。\par
+		HTTP是无状态的，即服务器不保存有关客户请求的任何有关信息
+		\subsection{非持续链接和持续链接}
+		非持久连接在一个TCP连接上最多传输一个对象，持续连接可以发送多个对象。又由于持续连接可以采用流水，效率会更高\par
+		关于响应时间模型：往返时间RTT：一个小的分组从客户端到服务器，在回到客户端的时间（传输时间忽略）。响应时间是2RTT+传输时间（握手+请求和响应）
+		\subsection{HTTP报文格式}
 		\subsection{用户-服务器状态：cookies}
 		cookies是在\textit{用户端}系统中维护的，由用户的浏览器管理
 	\section{FTP}
+		FTP使用了两个端口
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.3]{images/FTP_2_ports_1.pdf}
+			\end{minipage}
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.3]{images/FTP_2_ports_1.pdf}
+			\end{minipage}
+		\end{figure}
 	\section{Email}
+		SMTP和HTTP挺像的，总结如下：\par
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.5]{images/SMTP_and_HTTP.pdf}
+			\end{minipage}
+		\end{figure}\par
+		其中拉协议指，在方便的时候，某些人在web服务器上装载信息，用户使用HTTP从该服务器拉取这些信息。特别是TCP连接是由想接收文件的机器发起的。而推协议，指发送邮件服务器把文件推向接收邮件服务器。特别是TCP连接是由要发送文件的机器发起的。\par
+		值得注意的是，SMTP要求每个报文（\textbf{包括他们的体}）采用7bit ASCII码格式。如果包含了非7bit ASCII字符（如具有重音的法文字符）或二进制数据（如图形文件），则必须按照 7bit ASCII进行编码
 	\section{DNS}
 	\section{P2P应用}
 	\section{CDN}
