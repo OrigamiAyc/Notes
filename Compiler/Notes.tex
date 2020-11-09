@@ -147,8 +147,56 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 		\item 可帮助解释和理解该子串的属性(Attribute)
 		\item 可描述具有相同特征的子串的模式(Pattern)
 	\end{enumerate}
-	\section{词法记号及属性}
-		词法记号由记号名和可选的属性值构成的二元组，经常使用记号名来引用记号。一个记号的模式描述属于该记号的词法单元的形式。词法单元是源程序中匹配一个记号模式的字符序列，它由词法分析器识别为该记号的一个实例
+	\section{词法记号及属性、描述和识别}
+		\subsection{词法记号和属性}
+		词法记号由记号名和可选的属性值构成的二元组，经常使用记号名来引用记号。一个记号的模式描述属于该记号的词法单元的形式。词法单元是源程序中匹配一个记号模式的字符序列，它由词法分析器识别为该记号的一个实例。\textit{为什么需要属性？}概括的说，记号名影响语法分析的决策，属性影响记号的翻译。
+		\subsection{串和语言}
+		语言表示字母表上的一个串集，属于该语言的串称为该语言的句子或字，注意$\varnothing$和$\{\varepsilon\}$这样的抽象语言也符合这个定义。其运算参考字符串的运算（连接）和集合的运算（交并补etc）
+		\subsection{正则表达式}
+		约定：
+		\begin{enumerate}
+			\item 闭包运算（$^*$）有最高的优先级并且是左结合的运算
+			\item 连接运算（两个正规式并列）的优先级次之且也是左结合的运算
+			\item 选择运算（$\mid$）的优先级最低并且也是左结合的运算
+			\item 零个或一个实例（$r?$）表示 $r\mid\varepsilon$
+			\item 字符组（$[abc]$）表示$a\mid b\mid c$
+			\item 缩写字符组（$[a-z]$）表示$a\mid b\mid\cdots\mid z$
+		\end{enumerate}\par
+		可以对正规式命名，并用这些名字来引用相应的正规式。可以采用自底向上的方式来构建正规定义
+		\subsection{状态转换图}
+		（打个广告：在我的\href{http://home.ustc.edu.cn/~astark/}{主页}上面放了一个在线画FSM的网址连接）\par
+		大概长这样（这个是分析各种运算符以及注释的一个转换图，数字识别没有画完整）（IN是指intermediate，中间态）：\par
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.35]{images/FSM_Sample.png}
+			\end{minipage}
+		\end{figure}\par
+		在词法分析时，会出现“移进归约冲突”（这里不是这么叫的，我只是借鉴一下这种说法）。就是识别到一个token，它可能是一个关键字，也有可能是其他token的前缀。这时候应用最长匹配规则，即lookahead，如果不符合词法规则（状态机无法跳转）就回退。\par
+		值得注意的是，词法分析器对程序采取非常局部的观点，即词法分析器只会管给定的程序（一个字符串）是不是能拆分成符合词法定义的token流。这些token在词法分析器看来是相互无关的。
+		\subsection{关于FLEX的正则表达式}
+		众所周知，实验会用到FLEX，在写\verb|.l|文件的时候要写正则表达式，大概规则如下：
+		\begin{enumerate}
+			\item \verb|.| 匹配任何单个字符，除 \verb|\n|.
+			\item \verb|-| 表示匹配范围，如：\verb|a-z|，表示匹配a-z之间的任何字符
+			\item \verb|*| 匹配前面表达式的零个或多个拷贝。
+			\item \verb|[]| 匹配括号内的任意字符的字符类，第一个符号是 \verb|^|，表示匹配除括号中的字符以外的任意字符，如 \verb|[^/]| 表示除斜杠以外的所有字符。
+			\item \verb|()| 表示里面的模式被允许匹配多少次。
+			\item \verb|\| 用于转义字符
+			\item \verb|+| 匹配前面表达式一次或多次出现。
+			\item \verb|?| 匹配前面表达式零次或1次出现。
+			\item \verb||| 匹配前面表达式或随后表达式
+			\item \verb|""| 引号中的每个字符解释为字面意思
+			\item \verb|{}| 指示一个模式可能出现的次数，后面可以跟 \verb|*| 或者 \verb|+|
+		\end{enumerate}\par
+		以及，可以\textbf{参考}\href{https://blog.csdn.net/u014594922/article/details/51224231}{这个}文章
+	\section{有限自动机}
+		\subsection{NFA和DFA}
+		NFA（不确定的有限自动机）可以把同样的符号标记在出自同一个状态的多条边上，而DFA（确定的有限自动机）是NFA的特殊情况，其中：任何状态下都没有$\varepsilon$转换；且对任何状态s和任何输入符号a，最多只能有一条表示为a的边离开s
+		\subsection{正则表达式到NFA}
+		基本模型有$a\mid b$、$ab$、$s^*$和$(s)$，分别对应以下的图：
+
 
 	\chapter{语法分析}
 	\textit{输入：词法分析获得的记号序列；输出：程序的语法树}。需要一种可以描述合法记号序列的语言、一种可以区分合法和非法的记号序列的方法。正则表达式不能用于描述配对或嵌套的结构，这是因为有限自动机不能记录重复访问同一状态的次数。\par
