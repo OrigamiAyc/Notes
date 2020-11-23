@@ -196,6 +196,35 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 		NFA（不确定的有限自动机）可以把同样的符号标记在出自同一个状态的多条边上，而DFA（确定的有限自动机）是NFA的特殊情况，其中：任何状态下都没有$\varepsilon$转换；且对任何状态s和任何输入符号a，最多只能有一条表示为a的边离开s
 		\subsection{正则表达式到NFA}
 		基本模型有$a\mid b$、$ab$、$s^*$和$(s)$，分别对应以下的图：
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}{40em}
+				\begin{minipage}{18em}
+					\centering
+					\includegraphics[scale = 0.18]{images/s_mid_t.png}
+				\end{minipage}
+				\begin{minipage}{18em}
+					\centering
+					\includegraphics[scale = 0.23]{images/st.png}
+				\end{minipage}
+			\end{minipage}
+		\end{figure}
+		\begin{figure}[ht!]
+			\centering
+			\begin{minipage}{30em}
+				\centering
+				\includegraphics[scale = 0.25]{images/s_star.png}
+			\end{minipage}
+		\end{figure}
+		\subsection{NFA到DFA}
+		NFA的状态是DFA的状态集合（闭包）。主要的有两步：
+		\begin{enumerate}
+			\item 递归计算出来包含状态0（start状态）的闭包（就是经过$\varepsilon$能到达的所有状态）
+			\item 这个闭包在接收某个输入之后可能到达的新的状态闭包
+		\end{enumerate}\par
+		然后对新的闭包迭代第二步，直到没有新的了
+		\subsection{DFA的化简}
+		观察DFA的状态转换表，将对于任意输入符号，其跳转都一样的几个状态合并为同一状态，并选取一个代表。首先要\textbf{分开接受状态和非接受状态}
 
 
 	\chapter{语法分析}
@@ -342,7 +371,7 @@ void type()
 		对文法的每一个产生式$A\to\alpha$，执行以下两个步骤：
 		\begin{enumerate}
 			\item 对$FIRST(\alpha)$的每个终结符$A$，把$A\to\alpha$ 加入$M[A, a]$，注意这里的$\alpha$是一个表达式
-			\item 如果$\varepsilon$在$FIRST(\alpha)$中，$对FOLLOW(A)$的每个终结符$b$（包括$\$$）, 把$A\to\alpha$加入$M[A, b]$
+			\item 对产生式$A\to\alpha$，考虑$FIRST(\alpha)$和$FOLLOW(A)$，如果$\varepsilon$在$FIRST(\alpha)$中，对$FOLLOW(A)$的每个终结符$b$（包括$\$$）, 把$A\to\alpha$加入$M[A, b]$
 		\end{enumerate}
 		值得注意的是，填入表格的$A\to\alpha$是一条推导文法，如$E\to TE'$或者$T'\to\varepsilon$
 		注：多重定义条目意味着文法左递归或者是二义的，但是可以通过删除部分条目来消除
