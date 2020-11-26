@@ -571,4 +571,56 @@ void type()
 			\item 左值的综合属性要放在右部的末端
 			\item 多个继承属性，要考虑次序，避免形成环
 		\end{enumerate}
+
+
+	\chapter{中间代码生成}
+	中间表示设计的选择随编译器不同而不同。中间表示可以是一种实际的语言，也可以是编译各阶段共享的内部数据结构。C是一种编程语言，但它经常被当作一种中间形式，这是因为它灵活，能生成高效的机器代码，并且他的编译器到处可用。
+	\section{中间语言}
+		\paragraph{后缀表示}
+		\paragraph{图形表示（有向无环图，即DAG）}
+		\paragraph{三地址代码}
+		三地址代码是语法树或者DAG的一种线性表示，其中新增加的临时名字对应图的内部结点
+		\paragraph{静态单赋值形式，SSA}
+	\section{布尔表达式和控制流语句}
+		在编程语言中，布尔表达式有两个基本目的，第一是用于计算逻辑值，第二而且更经常的是作为条件表达式，用于控制流语句，如if-then、if-then-else和while-do语句
+		\subsection{布尔表达式}
+			下面是本节所用的布尔表达式文法：（relop是关系运算符，如$<,>,\le,\ge,==,!=$等）
+			\[B\to B\ \mathbf{or}\ B\mid B\ \mathbf{and}\ B\mid\mathbf{not}\ B\mid(B)\mid E\ \mathbf{relop}\ E\mid\mathbf{true}\mid\mathbf{false}\]\par
+			实现布尔表达式有两种方法：将真和假数值化，这样布尔表达式的计算就类似于算术表达式的运算；另一种方法就是借助控制流，即\textit{用程序中的位置来表示布尔表达式的值}，适用于短路计算的情况。
+		\subsection{控制流语句的翻译}
+			控制流语句（if-then、if-then-else、while-do、顺序执行）由下面的文法产生（B是布尔表达式）：
+			\[\begin{aligned}
+				S\to
+				&\mathbf{if}\ B\ \mathbf{then}\ S_1\\
+				&\mid\mathbf{if}\ B\ \mathbf{then}\ S_1\ \mathbf{else}\ S_2\\
+				&\mid\mathbf{while}\ B\ \mathbf{do}\ S_1\\
+				&\mid S_1;S_2
+			\end{aligned}\]\par
+			这四种语句对应的代码栈如下图所示，这几个图所示的三地址代码的结构可以帮助理解next的跳转。需要注意的是，$S.next$并没有被显式地画出来，而是作为（已知的）整个语句的出口，在后面的代码生成语法制导定义中被赋值给某些（语句块的）出口
+			\begin{figure}[ht!]
+				\centering
+				\begin{minipage}{40em}
+					\centering
+					\includegraphics[scale = 0.4]{images/Bool_Expression_If_Code.png}
+					\caption{if-then，if-then-else，while-do和顺序语句的代码（栈）}
+				\end{minipage}
+			\end{figure}
+		\subsection{if语句中间代码生成的SDD}
+			姑且命名语句$S\to\mathbf{if}\ B\ \mathbf{then}\ S_1$为产生式$\gamma$。\par
+			这个“产生式”的每一个“非终结符”（$S,B,S_1$）都是一段代码，即他们的综合属性$S.code,\ etc$。每一个代码段都要有一个或多个“出口”，也就是说在执行结束这一段代码之后程序应当去往何方。这些“出口”用“非终结符”的继承属性来表示。可以调用$newlabel()$来产生新标号，新标号是跳转到这个产生式内部的时候，用（实际上是另一个非终结符的$.begin$的位置的）一个内部入口，而不是（将整个产生式封装起来看，放在“左值”的$.next$属性中的）一个总的出口，来对这个$.next$属性赋值。即：
+			\begin{enumerate}
+				\item 标号指向内部的三地址代码时需要调用$newlabel()$
+				\item 标号指向外部的三地址代码时从$S$继承
+			\end{enumerate}\par
+			语义规则：
+			\[\begin{gathered}
+				B.true=newlabel()\\
+				B.false=S.next\\
+				S_1.next=S.next\\
+				S.code=B.code\parallel gen(B.true,':')\parallel S_1.code
+			\end{gathered}\]
+		\subsection{带有else的语句的中间代码生成}
+			考虑带来else的语句$S\to\mathbf{if}\ B\ \mathbf{then}\ S_1\ \mathbf{else}\ S_2$。\par
+			对布尔表达式B，用两个标号$B.true$和$B.false$分别表示B为真和为假时控制流应该转向的标号，这两个属性由B的上下文决定。注意在$S_1.code$的后面由$\mathrm{goto}\ S.next$，这条指令是需要的，因为$S_1$执行结束意味着$S$执行结束，并且当$S_1$是赋值语句的时候肯定会执行这条指令
+
 \end{document}
