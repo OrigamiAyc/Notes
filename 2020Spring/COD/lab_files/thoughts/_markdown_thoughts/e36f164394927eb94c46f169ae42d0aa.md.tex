@@ -1,0 +1,9 @@
+\markdownRendererOlBeginTight
+\markdownRendererOlItemWithNumber{1}CPU相应中断的时间和条件 CPU响应I/O设备提出中断请求的条件是必须满足CPU中的允许中断触发器 (互斥锁) 为\markdownRendererStrongEmphasis{1}。该触发器可用开中断指令置位，也可以用关中断指令或者硬件使其自动复位。由于I/O准备就绪的时间 (D = 1) 是随机的，而CPU是在统一的时刻 (EX段结束前) 向接口发中断查询信号，以获取I/O的中断请求。故CPU响应中断的时间一定是在\markdownRendererEmphasis{执行阶段的结束时刻}\markdownRendererOlItemEnd 
+\markdownRendererOlItemWithNumber{2}I/O中断处理流程 (\markdownRendererEmphasis{以输入设备为例}) 唐书P198，电子书P211\markdownRendererOlItemEnd 
+\markdownRendererOlItemWithNumber{3}中断服务程序的流程\markdownRendererOlItemEnd 
+\markdownRendererOlItemWithNumber{4}保护现场\markdownRendererOlItemEnd 
+\markdownRendererOlItemWithNumber{5}中断服务\markdownRendererOlItemEnd 
+\markdownRendererOlItemWithNumber{6}恢复现场\markdownRendererOlItemEnd 
+\markdownRendererOlItemWithNumber{7}中断返回\markdownRendererOlItemEnd 
+\markdownRendererOlEndTight \relax
