@@ -530,18 +530,240 @@ emph = {[2]const, typedef},emphstyle = {[2]\color{red}} }
 		\subsection{数据报格式}
 		IPv4中的关键字段（部分）如下：
 		\begin{enumerate}
-			\item 服务类型（TOS）区分不同类型的数据报（如，以下特别要求低时延、高吞吐量或可靠性的数据报）
-			\item 标识、标志、片偏移与IP分片有关。IPv6不允许在路由器上对分组分片
-			\item 寿命（TTL）
-			\item 协议通常仅当到达最终目的地才有用。指示了其数据部分应当交给哪个特定的运输层协议。如：值为6是TCP，值为17是UDP。注意在IP数据报中对协议号所起的作用，类似于运输层报文段中端口号字段所起的作用
-			\item 首部检验和与该和的反码（被称为因特网检验和）存放在检验和字段中。注意在每台路由器上必须\textbf{重新计算}检验和并再次存放到原处，因为TTL字段及可能的选项字段会改变。\textit{为什么TCP/TP在运输层和网络层都执行差错检测？}首先，IP只对IP首部计算了检验和，而TCP/UDP检验是对整个TCP/UDP报文段进行的；其次，TCP/UDP和IP不一定属于同一个协议栈
+			\item \textit{服务类型}（TOS）区分不同类型的数据报（如，以下特别要求低时延、高吞吐量或可靠性的数据报）
+			\item \textit{标识、标志、片偏移}与IP分片有关。IPv6不允许在路由器上对分组分片
+			\item \textit{寿命}（TTL）
+			\item \textit{协议}通常仅当到达最终目的地才有用。指示了其数据部分应当交给哪个特定的运输层协议。如：值为6是TCP，值为17是UDP。注意在IP数据报中对协议号所起的作用，类似于运输层报文段中端口号字段所起的作用
+			\item \textit{首部检验和}与该和的反码（被称为因特网检验和）存放在检验和字段中。注意在每台路由器上必须\textbf{重新计算}检验和并再次存放到原处，因为TTL字段及可能的选项字段会改变。\textit{为什么TCP/TP在运输层和网络层都执行差错检测？}首先，IP只对IP首部计算了检验和，而TCP/UDP检验是对整个TCP/UDP报文段进行的；其次，TCP/UDP和IP不一定属于同一个协议栈。原则上，TCP可以运行在一个不同的协议（如ATM）上，而IP能够携带不一定要传递给TCP/IP的数据
+			\item \textit{选项}字段允许IP首部被扩展。首部选项很少使用，因此对每个\textbf{数据报首部不包括选项字段中的信息}，这样可以节约开销。由于比较麻烦，在IPv6中已经去掉了IP选项
+			\item \textit{数据}（有效载荷）一般承载的是要交付给目的地的运输层报文段，不过也可以承载其它类型的报文段，比如ICMP报文段
 		\end{enumerate}
+		注意到一个IP数据报有总长为20字节的首部（假设无选项\footnote{这个在书上这一节“首部长度”部分有说明}）。如果数据报承载一个TCP报文段，则每个（无分片的）数据报共承载了总长40字节的首部以及应用层报文
+		\begin{figure}[h]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.4]{images/IPv4_Datagram_Style.pdf}
+				\caption{IPv4数据报格式}
+			\end{minipage}
+		\end{figure}
 		\subsection{分片}
-		\subsection{Ipv4地址}
-		\subsection{NAT：网络地址转换}
+			\paragraph{为何需要分片？}
+			众所周知，每个IP数据报封装在链路层帧中从一台路由器转移到下一台路由器，故IP数据报的大小严格受到链路层帧能承载的最大数据量，即最大传送单元（Maximum Transmission Unit, MTU）的限制。然而实际上，发送方和目的地之间的每段链路可能使用不同的链路协议，且每种协议有着不同的MTU。\par
+			那么，当一个路由器从某条链路受到一个IP数据报，通过检查转发表确定出链路并且该链路的MTU比该IP数据报的有效载荷要小，这时解决问题的办法就是将原数据报拆分成几个较小的数据报，即片（fragment）
+			\paragraph{分片需要做什么额外的处理？}
+			片在到达目的地运输层之前需要重新组装。不过为了坚持网络内核保持简单的原则，IPv4的数据报重新组装工作放到端系统中，而不是放到网络路由器中。\par
+			当目的主机从相同源收到一系列数据报时，需要确定这些数据报中的某些是不是一些原来较大数据报的片。如果是的话，必须确定何时收到了最后一片，并且如何（以何种顺序）将这些片拼接到一起以形成初始的数据报。\par
+			IPv4将\textit{标识、标志、片偏移}字段放在IP数据报的首部中。当生成一个数据报时，发送助局在为该数据报设置源和目的地址的同时贴上标识号。同一个较大数据报的不同片之间
+			\begin{enumerate}
+				\item 具有初始数据报的源地址、目的地址与标识号
+				\item 标志位：
+				\begin{enumerate}
+					\item MF(more fragments):最后一个分片的MF=0，其余分片的MF=1
+					\item DF(don’t fragment):DF=1表示不允许对数据报分片
+				\end{enumerate}
+				\item 偏移字段用来指定该片被放在初始数据报的哪个位置
+			\end{enumerate}\par
+			\paragraph{分片的长度}
+			\begin{enumerate}
+				\item 由于分片偏移量只有13比特，除最后一个分片外，其余分片的数据长度应为8字节的整倍数。
+				\item 假设原始报头的长度为H，则分片的数据长度 N 应为满足以下条件的最大整数：$ N \le MTU - H $（N为8的倍数）
+			\end{enumerate}
+			\paragraph{分片有什么问题吗？}
+			首先，它使路由器和端系统更为复杂。其次，分片能够被用于生成致命的DoS攻击，由此攻击者发送了一系列古怪的、无法预期的片。如Jolt2攻击（发送偏移量都不是0的小片的流），或者发送交迭的IP片（这些片的偏移量被设置的不能是当地排列起来）
+		\subsection{Ipv4编址}
+			\paragraph{网络接口与IP地址}
+			网络接口是主机或路由器与物理链路之间的边界，而IP要求每台主机和路由器接口拥有自己的IP地址。因此，technologically，一个IP地址与一个接口相关联，而不是与包括该接口的主机或路由器相关联。\par
+			IPv4地址是一个32位的数，通常用点分十进制表示，即地址的四个字节分别转换为十进制。除了在NAT后面的接口（\ref{subsection:NAT} 节会讨论）以外，每个接口都必须有一个全球唯一的IP地址。IP地址的高位由子网确定，而低位由机器接口确定。\par
+			\paragraph{子网}
+			一个子网要具备以下两个条件：
+			\begin{enumerate}
+				\item 一个子网内的节点(主机或者路由器)它们的IP地址的高位部分（子网号）相同，这些节点构成的网络的一部分叫做子网
+				\item 无需路由器介入，子网内各主机可以在物理上相互直接到达（在IP的角度看\textbf{只有一跳，不经过路由器}，不过在链路层来看可以经过几个交换机blabla）
+			\end{enumerate}
+			\paragraph{路由器和交换机有什么区别？}
+			引用自\href{https://www.zhihu.com/question/20465477/answer/18025629}{知乎}
+				\subparagraph{工作层次不同}交换机主要工作在数据链路层（第二层）；路由器工作在网络层（第三层）。
+				\subparagraph{转发依据不同}交换机转发所依据的对象是MAC地址（物理地址）；路由转发所依据的对象是IP地址（网络地址）
+				\subparagraph{主要功能不同}交换机主要用于组建局域网，而路由主要功能是将由交换机组好的局域网相互连接起来，或者接入Internet。交换机能做的，路由都能做。交换机不能分割广播域，路由可以。路由还可以提供防火墙的功能。路由配置比交换机复杂。\subparagraph{不严格的类比}交换机是看门大爷，路由是邮差。\par
+			详细的可以看\href{https://www.zhihu.com/question/20465477}{同问题下的其他回答}
+			\begin{figure}[h]
+				\centering
+				\begin{minipage}{40em}
+					\centering
+					\includegraphics[scale = 0.5]{images/subnet.pdf}
+					\caption{子网示意图}
+				\end{minipage}
+			\end{figure}
+			\paragraph{如何判断子网（纯子网）}
+			\begin{enumerate}[label = \circled{\arabic{*}}]
+				\item 要判断一个子网，将每一个接口从主机或者路由器上分开，构成了一个个网络的孤岛。
+				\item 每一个孤岛(网络)都可以被称为subnet。
+			\end{enumerate}\par
+			注：将接口从主机或者路由器上面分开，也就是将接口与设备分离开来，只观察各接口之间在IP层的连接关系（因为IP线路本来就是在各个接口之间连接的嘛。这样子，对于一个路由器的不同接口，就可以正确归属到它所属于的子网之中了\par
+			注2：子网并不局限于连接多台主机到一个路由器接口的以太网段，还可以包括比如两个路由器接口之间直接连着那根线\par
+			注3：前面所说的概念是纯子网（如上面图中的每一个颜色区域），不过其实从这个区域外面来看，这整个的网络也可以叫一个子网（非纯子网）。尽管网内交流需要经过路由器，但是这个局域对于外界是封闭的，到达路由器之后就是网内部的事了
+			\paragraph{子网掩码}\label{paragraph:network_mask}
+			在因特网文献中，子网也称为IP网络或直接称为网络。IP编址为这个子网分配一个地址，如223.1.1.0/24，其中的/24记法，有时称为子网掩码，指示了32比特中的最左侧24比特定义了子网地址。即，任何其他要连到223.1.1.0/24网络的主机都要求其地址具有223.1.1.xxx的形式。
+			\paragraph{单播、广播和多播（组播）地址}
+			具体内容参考\href{https://www.cnblogs.com/lifan3a/articles/6652807.html}{这篇文章}
+			单播地址（A、B、C类）被划分为网络号和主机号两部分：\circled{1} 网络号：标识一个物理网络 \circled{2} 主机号：标识该物理网络上的一个网络接口。同一个物理网络上的网络接口，它们的IP地址具有相同的网络号。\par
+			广播是对所有人都发送信息，一般来说是局域网范围内的广播。\par
+			组播是发送给属于这个组播组的成员。组播组的维护是通过一些特定的协议，如IGMP。发送到一个D类地址，那么属于这个组播组的所有成员都会收到
+			\paragraph{地址分配}
+			因特网中的每个接口必须具有唯一的IP地址，为在因特网范围内保证IP地址的全局唯一性：
+			\begin{enumerate}
+				\item 网络号由ICANN统一分配
+				\item 主机号由网络管理员统一分配
+				\item 建立私有网络的组织可以自己选择网络号，但同样必须保证每个网络号在私有网络内的唯一性
+			\end{enumerate}
+				\subparagraph{特殊的地址}
+				全0或全1的网络号及主机号是特殊地址，从不分配给特定的网络接口:
+				\begin{enumerate}
+					\item 网络号有效、主机号全为0的地址：保留给网络本身。
+					\item 网络号有效、主机号全为1的地址：保留作为定向广播，即在网络号指定的网络中广播（仅用作目的地址）
+					\item 32位全1的地址：本地广播地址，表示仅在发送节点所在的 网络中广播（仅用作目的地址）
+					\item 32位全0的地址：指示本机（仅用作源地址）
+					\item 网络号为0、主机号有效的地址：指代本网中的主机。
+					\item 形如127.xx.yy.xx的地址：保留作为回路测试，发送到这个地址的分组不输出到线路上，而是送回内部的接收端。
+				\end{enumerate}
+				内网(专用)IP地址：
+				\begin{enumerate}
+					\item 专用地址:地址空间的一部份供专用地址使用
+					\item 永远不会被当做公用地址来分配, 不会与公用地址重复
+					\item 路由器不对目标地址是专用地址的分组进行转发
+					\item 专用地址范围
+					\begin{enumerate}
+						\item Class A: 10.0.0.0-10.255.255.255, MASK 255.0.0.0
+						\item Class B: 172.16.0.0-172.31.255.255, MASK 255.255.0.0
+						\item Class C: 192.168.0.0-192.168.255.255, MASK 255.255.255.0
+					\end{enumerate}
+				\end{enumerate}
+			\begin{figure}[ht]
+				\centering
+				\begin{minipage}{20em}
+					\centering
+					\includegraphics[scale = 0.3]{images/IP_Address_ABC.pdf}
+				\end{minipage}
+				\begin{minipage}{20em}
+					\centering
+					\includegraphics[scale = 0.3]{images/IP_Address_ABCDE.pdf}
+				\end{minipage}
+			\end{figure}
+			\paragraph{无类别域间路由选择}
+			因特网的地址分配策略被称为无类别域间路由选择（Classless Interdomain Routing, CIDR）。如上文所述，我们对IP地址进行了分类，如A类的第一个字节是网络号。但在CIDR中，网络号可以是任意长度的。当使用子网寻址时，32比特的IP地址被划分为两部分，并且也具有点分十进制数形式$a.b.c.d/x$，其中x指示了第一部分（网络号）中的比特数。也就是一种按需分配的思路。\par
+			形式为$a.b.c.d/x$的地址的x位最高比特构成了IP地址的网络部分，并且经常被称为该地址的前缀（prefix）（或网络前缀）
+			在这里可以借助子网掩码（\ref{paragraph:network_mask}）来在路由器查表的时候对原IP地址进行处理。根据RFC950定义，子网掩码是一个32位的2进制数，其对应网络地址的所有位都置为1，对应于主机地址的所有位置都为0。子网掩码告知路由器，地址的哪一部分是网络地址，哪一部分是主机地址，使路由器正确判断任意IP地址是否是本网段的，从而正确地进行路由。这样做的目的是为了让掩码与IP地址做按位与运算时用0遮住原主机数，而不改变原网络段数字，而且很容易通过0的位数确定子网的主机数（2的主机位数次方-2，因为主机号全为1时表示该网络广播地址，全为0时表示该网络的网络号，这是两个特殊地址）。\par
+			（想想为什么上面的掩码都是255？）255转成二进制就是11111111啊……
+			\paragraph{获得IP地址}
+			我们先看一个组织是如何为其设备得到一个地址块的，然后再看一个设备（如一台主机）是如何从某个组织的地址块中分配到一个地址的。
+				\subparagraph{获取一块地址}
+				某网络管理员会与他的互联网服务提供商（Internet Service Provider, ISP）联系，该ISP可能会从已分给他的更大地址块中提供一些地址。而这也就需要一个全球性的权威机构，具有管理IP地址空间并向各ISP和其他组织分配地址块的最终责任。这就是因特网名字和编号分配机构（Internet Corporation for Assigned Names and Numbers, ICANN）。它也管理DNS根服务器
+				\subparagraph{获取主机地址：动态主机配置协议}
+				系统管理员通常手工配置\textbf{路由器中的IP地址}（常常在远程通过网络管理工具进行配置）。主机地址更多的是使用动态主机配置协议（Dynamic Host Configuration, DHCP）来完成。\par
+				DHCP允许主机自动获取（被分配）一个地址，而这个操作是不需要网络管理员来参与的。不过，DHCP也允许网络管理员手动配置，来为指定主机分配固定的IP。除了主机IP地址分配外，DHCP还允许一台主机得知其他信息，例如他的子网掩码、他的第一跳路由器地址（常称为\textbf{默认网关}）与他的本地DNS服务器地址。\par
+				DHCP的目标：允许主机在加入网络的时候，动态地从服务器那里获得IP地址：
+				\begin{enumerate}
+					\item 可以更新对主机在用IP地址的租用期-租期快到了
+					\item 重新启动时，允许重新使用以前用过的IP地址
+					\item 支持移动用户加入到该网络(短期在网)
+				\end{enumerate}\par
+				由于DHCP具有将主机连接进一个网络的网络相关方面的自动能力，故他又常被称为即插即用协议（plug-and-play protocol）或零配置（zeroconf）协议。\par
+			\paragraph{DHCP的操作流程}
+			DHCP是一个客户-服务器（C-S）协议。对于一台新到达的主机而言，DHCP是一个四个步骤的过程，这四个步骤是：
+			\begin{enumerate}
+				\item 主机广播“DHCP discover” 报文[可选]
+				\item DHCP 服务器用 “DHCP offer”提供报文响应[可选]
+				\item 主机请求IP地址:发送 “DHCP request” 报文
+				\item DHCP服务器发送地址:“DHCP ack” 报文
+			\end{enumerate}\par
+				\subparagraph{DHCP服务器发现}
+				一台新到达的主机可以通过DHCP发现报文来做到这一点。客户在UDP分组中向端口67发送该发现报文。在IP封装时\textbf{使用广播目的地址255.255.255.255和“本主机”源IP地址0.0.0.0}（因为自己的IP还没有被分配，所以加了引号）。
+				\subparagraph{DHCP服务器提供}
+				DHCP服务器收到一个DHCP发现报文时，用DHCP提供报文向客户发出响应，该报文\textbf{向该子网的所有节点广播}，仍然使用IP广播地址255.255.255.255（书上说这个的原因是在子网中可能存在几个DHCP服务器）。当然在子网中可能存在几个DHCP服务器，每台服务器提供的报文包括收到的发现报文的事务ID、向客户推荐的IP地址、网络掩码以及IP地址租用期
+				\subparagraph{DHCP请求}
+				新到达的客户从一个或多个服务器中选择一个，并向选中的服务器用DHCP请求报文进行响应，回显配置的参数
+				\subparagraph{DHCP ACK}
+				服务器用DHCP ACK报文对DHCP请求报文进行响应，证实所要求的参数
+		\subsection{NAT：网络地址转换}\label{subsection:NAT}
+		NAT的基本想法由NAT使能路由器来完成一个专用网络中所有主机的对外通讯工作。就好比NAT使能路由器是一个快递站，它为每一个要寄出去的包裹都换上“nat快递”的盒子，并以自己的名义寄出去；同样，将每一个寄给“nat快递”的包裹，在更改为真实的收件人之后，传递给内部的主机。\par
+		地址空间10.0.0.0/8是一块保留的地址空间，用于是一个专用网络（private network）或具有专用地址的地域（realm with private address）（具有专用地址的地域是指其地址仅对该网络中的设备有意义的网络）。而NAT则是在这个专用网络和专用网络以外的因特网之间的interface\par
+		动机：本地网络只有一个有效IP地址：
+		\begin{enumerate}
+			\item 不需要从ISP分配一块地址，可用一个IP地址用于所有的(局域网)设备--省钱
+			\item 可以在局域网改变设备的地址情况下而无须通知外界
+			\item 可以改变ISP(地址变化)而不需要改变内部的设备地址
+			\item 局域网内部的设备没有明确的地址，对外是不可见的--安全
+		\end{enumerate}\par
+		\begin{figure}[h]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.4]{images/NAT_example.pdf}
+				\caption{NAT的执行过程示例}
+			\end{minipage}
+		\end{figure}\par
+		NAT使能路由器对于外部世界的行为就像一个具有\textbf{单一IP地址的单一设备}，而内部网络中不同设备的区分是依赖于端口号来完成的。所以从本质上讲，NAT使能路由器对外界隐藏了家庭网络的细节。NAT路由器上会维护一张NAT转换表（NAT transaction table），并且在表项中包含了端口号及其IP地址。\par
+		实现：NAT路由器必须：
+		\begin{enumerate}
+			\item 外出数据包：替换源地址和端口号为NAT IP地址和新的端口号，目标IP和端口不变。远端的C/S将会用NAP IP地址，新端口号作为目标地址
+			\item 记住每个转换替换对（在NAT转换表中）（源IP，端口）vs（NAP IP，新端口）
+			\item 进入数据包：用（源IP，端口）替换目标IP地址和端口号，采用存储在NAT表中的mapping表项
+		\end{enumerate}\par
+		\subsection{ICMP}
+		放到控制平面来说
 		\subsection{Ipv6}
+		IPv6使用固定的40字节头部，且数据报在传输过程中不允许分片。IPv6中引入的最重要的变化显示在其数据报格式中：
+		\begin{enumerate}
+			\item \textit{扩大的地址容量}。地址长度增加到了128比特，且引入了任播地址的概念，可以使数据报交付给一组主机中的任意一个（如，可用于向一组包含给定文档的镜像站点中的最近一个发送HTTP GET报文）
+			\item \textit{简化高效的40字节首部}。由于许多IPv4字段已被舍弃或作为选项
+			\item \textit{流标签}。IPv6有一个没有被严格定义的流的概念
+		\end{enumerate}
+		\begin{figure}[h]
+			\centering
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.3]{images/IPv6_header.pdf}
+			\end{minipage}
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.3]{images/IPv6_changes_from_IPv4.pdf}
+			\end{minipage}
+		\end{figure}
+		当然，变革都是需要时间的，现在则采用了一种称为“隧道”的技术，即在IPv4路由器之间传输的IPv4数据报之中携带者IPv6数据报，如下图：
+		\begin{figure}[h]
+			\centering
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.3]{images/IPv6_tunnel.pdf}
+			\end{minipage}
+			\begin{minipage}{20em}
+				\centering
+				\includegraphics[scale = 0.3]{images/IPv6_tunnel_use.pdf}
+			\end{minipage}
+		\end{figure}
 	\section{通用转发和SDN}
+	第二层交换机和第三层路由器等中间盒的剧增，并且每种都有自己特殊的硬件、软件和管理界面，会带来麻烦。基于目的地转发的特征可以总结为两个步骤：查找目的IP地址（“匹配”），然后将分组发送到有特定端口的交换结构（“动作”）
 		\subsection{匹配}
 		\subsection{行动}
 		\subsection{OpenFLow有关“匹配+行动”的运行实例}
+
+	\chapter{网络层-控制平面}
+	控制平面作为一种网络范围的逻辑，不仅控制沿着从源主机到目的主机的端到端路径键的路由器如何转发数据报，而且控制网络层组件和服务如何配置和管理。
+	\section{导论}
+	回顾：2个网络层功能：
+	\begin{enumerate}
+		\item 转发：将分组从路由器的一 个输入端口移到合适的输出 端口
+		\item 路由：确定分组从源到目标 的路径
+	\end{enumerate}
+	2种构建网络控制平面功能的方法：
+	\begin{enumerate}
+		\item 每个路由器控制功能实现(传统)：在每一个路由器中的单独路由器算法元件，在控制平面进行交互
+		\item 逻辑上集中的控制功能实现(software defined networking)：一个不同的(通常是远程的)控制器与本地控制代理(CAs)交互
+	\end{enumerate}
+	\section{路由选择算法}
+	\section{因特网中自治系统内部的路由选择}
+	\section{ISP之间的路由选择：BGP}
+	\section{SDN控制平面}
+	\section{ICMP：因特网控制报文协议}
 \end{document}
