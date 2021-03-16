@@ -557,13 +557,13 @@ void type()
 			\item 为了简单起见，我们可以把符号表作为全局变量， 通过副作用函数读取或者添加标识符
 		\end{enumerate}
 		\subsection{具有受控副作用的语义规则}
-		在实践中，翻译过程会出现一些副作用（什么是副作用呢？就是当一个操作/函数除了产生其计算结果外，还对其他部分产生了影响：一个桌上计算器可能打印出一个结果；一个代码生成器可能把一个标识符的类型加入到符号表中）。对于SDD，我们在属性文法和翻译方案之间找到一个平衡点。（why？）属性文法\footnote{一个没有副作用的SDD有时也称为属性文法（attribute grammar）。一个属性文法的规则仅仅痛哟其他属性值和常量值来定义一个属性值。（龙书P184，line 7）}没有副作用，并支持任何与依赖图一致的求值顺序。翻译方案(\ref{section:Trans_Recipe})要求按从左到右的顺序求值，并允许语义动作包含任何程序片段。\par
+		在实践中，翻译过程会出现一些副作用（什么是副作用呢？就是当一个操作/函数除了产生其计算结果外，还对其他部分产生了影响：一个桌上计算器可能打印出一个结果；一个代码生成器可能把一个标识符的类型加入到符号表中）。对于SDD，我们在属性文法和翻译方案之间找到一个平衡点。（why？）属性文法\footnote{一个没有副作用的SDD有时也称为属性文法（attribute grammar）。一个属性文法的规则仅仅痛哟其他属性值和常量值来定义一个属性值。（龙书P184，line 7）}没有副作用，并支持任何与依赖图一致的求值顺序。翻译方案(\ref{section:SDT})要求按从左到右的顺序求值，并允许语义动作包含任何程序片段。\par
 		我们将按照下面的方法之一来控制SDD中的副作用：
 		\begin{enumerate}
 			\item 支持那些不会对属性求值产生约束的附带副作用，换句话说，如果按照依赖图的任何拓扑顺序进行属性求值时都可以产生“正确的”翻译结果，我们就允许副作用存在。这里的“正确”要视具体应用而定。
 			\item 对允许的求值顺序添加约束，使得以任何允许的求值顺序都会产生相同的翻译结果，这些约束可以被看作隐含加入到依赖图中的边
 		\end{enumerate}
-	\section{语法制导的翻译方案}\label{section:Trans_Recipe}
+	\section{语法制导的翻译方案}\label{section:SDT}
 	语法制导翻译方案（syntax-directed translation scheme，SDT）是语法制导定义（syntax-directed definition，SDD）的一种补充。所有语法制导定义的应用都可以使用语法制导的翻译方案来实现。语法制导的翻译方案是在产生式右部中嵌入了程式片段（称为语义动作，它们可以出现在产生式体的的任何地方）的上下文无关文法（CFG）\par
 	SDT可以看作是SDD的具体实现方案。任何SDT都可以通过下面的方法实现：首先建立一棵语法分析树，然后按照从左到右u的深度优先顺序来执行这些动作（前序遍历）。不过，通常情况下，SDT是在\textbf{语法分析}中实现的，而不会真的构造一棵语法分析树。那么下面就是如何使用SDT来实现两个重要的SDD，i.e：
 	\begin{enumerate}
@@ -714,7 +714,7 @@ void type()
 		\end{enumerate}
 		\subsection{L属性的SDD的自底向上语法分析}
 		考虑与LR分析器的结合\par
-		我们可以使用自底向上的方法来完成任何可以用自顶向下方式完成的翻译过程。更准确的说，给定一个以LL文法为基础属性的L属性SDD，可以修改这个文法，并在LR语法分析过程中计算之歌新文法之上的SDD。这个“技巧”包括三个部分：
+		我们可以使用自底向上的方法来完成任何可以用自顶向下方式完成的翻译过程。更准确的说，给定一个以LL文法为基础属性的L属性SDD，可以修改这个文法，并在LR语法分析过程中计算这个新文法之上的SDD。这个“技巧”包括三个部分：
 		\begin{enumerate}
 			\item 以按照 \ref{subsection:L_SDD_to_SDT} 节中的方法构造得到的SDT为起点。这样的SDT在各个非终结符之前放置语义动作来计算他的继承属性，并且在产生式后端放置一个动作来计算综合属性
 			\item 对每个内嵌的语义动作，向这个文法中引入一个\textit{标记非终结符}来替换他。每个这样的位置都有一个不同的标记，并且对于任意一个标记M都有一个产生式$M\to\varepsilon$
@@ -729,21 +729,92 @@ void type()
 		事实上，如果文法是LL的，那么只需要看输入符号串w的FIRST符号（如果w为空则是FOLLOW符号），就可以确定w是否可以从A开始，经过一个以产生式$A\to\alpha$开头的推导序列得到。因此，如果我们用自底向上的方式对w进行语法分析，那么只要w的开头出现在输入中，就可以确定w的一个前缀必须被归约成为$\alpha$，然后再归约到S。特别是，如果在$\alpha$的任何位置插入标记，相应的LR状态将隐含的表明这个标记必定存在，并将在输入的正确位置上把$\varepsilon$归约为标记
 
 	\chapter{中间代码生成}
-	中间表示设计的选择随编译器不同而不同。中间表示可以是一种实际的语言，也可以是编译各阶段共享的内部数据结构。C是一种编程语言，但它经常被当作一种中间形式，这是因为它灵活，能生成高效的机器代码，并且他的编译器到处可用。
+	中间表示设计的选择随编译器不同而不同。中间表示可以是一种实际的语言，也可以是编译各阶段共享的内部数据结构。C是一种编程语言，但它经常被当作一种中间形式，这是因为它灵活，能生成高效的机器代码，并且他的编译器到处可用。\par
+	\textit{本章按照龙书编排，因为我不太喜欢PPT和紫书的顺序orz}
 	\section{中间语言}
 		\paragraph{后缀表示}
 		波兰式、逆波兰式……
 		\paragraph{图形表示（有向无环图，即DAG）}
-		\paragraph{三地址代码}
-		三地址代码是语法树或者DAG的一种线性表示，其中新增加的临时名字对应图的内部结点
+		\subsection{三地址代码}\label{paragraph:triple_code}
+		三地址代码是语法树或者DAG的一种线性表示，其中新增加的临时名字对应图的内部结点。
 		\paragraph{静态单赋值形式，SSA}
+	\section[]{表达式的翻译\footnote{龙书6.4节}}
+		本节介绍在翻译表达式和语句时出现的问题。在本节中，先考虑从表达式到三地址代码（\ref{paragraph:triple_code}）的翻译。一个带有多个运算符的表达式（比如$a+b*c$将被翻译成为每条指令最多包含一个运算符的指令序列。类似的，一个数组引用$A[i][j]$将被扩展为一个计算该引用的地址的三地址指令序列。我们将在下一章考虑表达式的类型检查。
+		\subsection{符号表中的名字}
+			在介绍中间语言时，为了直观起见，让名字本身直接出现在三地址代码中，实际上应该把名字理解为他们在符号表中位置的指针。编译器在处理表达式、赋值语句等构造中的名字时，需要在符号表中查找它的定义，获得他的属性，然后在生成的三地址代码中使用它在符号表中位置的指针。下面一个小节中的$top.get$函数即是此作用（略去了检查是否返回值为NIL的步骤）
+		\subsection{表达式中的运算}
+			\textbf{本章中表达式均用符号E表示。}\par
+			下面的语法制导定义使用S的属性$code$以及表达式$E$的属性$addr$和$code$，为一个赋值语句S生成三地址代码。属性$S.code$和$E.code$分别表示S和E对应的三地址代码。属性$E.addr$则表示存放E的值的地址。回忆一下前面对于三地址代码的描述（\ref{paragraph:triple_code}），一个地址可以是变量名字、常量或者编译器产生的临时量。
+			\begin{table}[h]
+				\centering
+				\caption{表达式的三地址代码}
+				\begin{tabular}{cc}
+					\toprule
+					产生式&语义规则\\
+					\midrule
+					$S\to\mathbf{id\ =\ }E\mathbf{\ ;}$&$S.code = E.code\parallel gen(top.get(\mathbf{id}.lexeme)\ '='\ E.addr)$\\[5pt]
+					$E\to E_1+E_2$&$E.addr = \mathbf{new}\ Temp()$\\
+					&$E.code = E_1.code\parallel E_2.code\parallel gen(E.addr'='E_1.addr'+'E_2.addr)$\\[5pt]
+					$\mid -E_1$&$E.addr = \mathbf{new}\ Temp()$\\
+					&$E.code = E_1.code\parallel gen(E.addr'=''\mathbf{minus}'E_1.addr)$\\[5pt]
+					$\mid(E_1)$&$E.addr = E_1.addr$\\
+					&$E.code = E_1.code$\\[5pt]
+					$\mid\mathbf{id}$&$E.addr = top.get(\mathbf{id}.lexeme)$\\
+					&$E.code = ''$\\
+					\bottomrule
+				\end{tabular}
+			\end{table}\par
+			第一个表项（非终结符S）为一个完整的语法分析的语句，而非终结符E则是此语句中的表达式。其中二元运算以加法为例。\par
+			令$top$表示当前的符号表。当函数$top.get$被应用于$\mathbf{id}$的这个实例的\textit{字符串表示}$\textbf{id}.lexeme$时，它返回对应的符号表条目。\par
+			$\mathbf{new}\ Temp()$指令会产生一个新的临时变量$t$，而连续执行这个指令会产生一系列互不相同的临时变量$t_1,t_2,\cdots$\par
+			$gen$用于表达式和字符串的组合。为方便起见，使用记号$gen(x\ '='\ y\ '+'\ z)$来表示三地址指令$x=y+z$。当被传递给$gen$时，变量x、y、z的位置上出现的表达式将首先被求值，而像等号这样的引号内的字符串则按照字面值传递（在SDD中，gen构造一条指令并返回他，而在SDT中，gen构造出一条指令，并增量地将它添加到指令流中去）\par
+			对$addr$属性的赋值可以看作是将这个非终结符的attributes填入符号表，而对这个属性的调用可以看作是对符号表的查找。S不具有这个$addr$的操作是因为不需要在其他（对表达式$code$进行处理的）地方用到S的值。\par
+			除了对左式为S的产生式的SDD，在书写时都包含两部分，即对$E.addr$和对$E.code$的赋值。\par
+			考虑上面的语法制导定义的最后一个产生式$E\to\mathbf{id}$。若表达式只是一个标识符，比如说x，那么$x$本身就保存了这个表达式本身的值。这个产生式对应的语义规则把$E.addr$定义为指向该\textbf{id}的实例对应的符号表条目的指针。$E.code$被设置为空串\par
+			当翻译产生式$E\to E_1+E_2$时，首先将二者当$code$连接起来，然后再加上一条将$E_1$和$E_2$相加的指令（即gen语句）。新增加的这条指令将求和的结果放入一个为E生成的临时变量中，用$E.addr$表示。（为什么要这么处理呢？首先作为一个整体，非终结符E的任务就是计算$E_1$和$E_2$的和，所以一定需要添加那条gen语句。其次这个翻译过程可以看作是一个沿着语法分析树自底向上回溯的过程，生成的E的code里面应当包含底层的所有代码，这样才能在顶层也可以获取$E_1$和$E_2$的值。）
+		\subsection{数组元素的寻址}
+			如OS中所述，数组元素被存储在一块连续的空间中。对于k维数组，元素$A[i_1][i_2]\cdots[i_k]$的相对地址可用如下公式计算：
+			\[base+i_1\times w_1+i_2\times w_2+\cdots+i_k\times w_k\]
+			其中base时分配给数组A的内存块的相对地址，即$A[0]$的相对地址。而$w_i$是第i个维度的宽度。另一种表示方式是根据第j维上数组元素第个数$n_j$和该数组第每个元素第宽度$w=w_k$来计算的。如下：
+			\[base+((\cdots((i_1\times n_2+i_2)\times n_3+i_3)\cdots)\times n_k+i_k)\times w_k\]
 	\section{布尔表达式和控制流语句}
-		在编程语言中，布尔表达式有两个基本目的，第一是用于计算逻辑值，第二而且更经常的是作为条件表达式，用于控制流语句，如if-then、if-then-else和while-do语句
+		在编程语言中，布尔表达式有两个基本目的，第一是用于计算逻辑值，第二而且更经常的是作为条件表达式，用于控制流语句，如if-then、if-then-else和while-do语句。\par
+		if-else语句、while语句这类语句的翻译和对布尔表达式对翻译是结合在一起的。在程序设计语言中，布尔表达式经常用来：
+		\begin{enumerate}
+			\item \textit{改变控制流。}布尔表达式被用作语句中改变控制流的条件表达式。这些布尔表达式的值由程序到达的某个位置隐含地指出。例如，在$\textbf{if}(E)S$中，如果运行到语句S，就意味着表达式E的取值为真。
+			\item \textit{计算逻辑值。}一个布尔表达式的值可以表达$true$或者$false$。这样的布尔表达式也可以像算术表达式一样，使用带有逻辑运算符的三地址指令进行求值
+		\end{enumerate}
 		\subsection{布尔表达式}
 			下面是本节所用的布尔表达式文法：（relop是关系运算符，如$<,>,\le,\ge,==,!=$等）
 			\[B\to B\ \mathbf{or}\ B\mid B\ \mathbf{and}\ B\mid\mathbf{not}\ B\mid(B)\mid E\ \mathbf{relop}\ E\mid\mathbf{true}\mid\mathbf{false}\]\par
-			实现布尔表达式有两种方法：将真和假数值化，这样布尔表达式的计算就类似于算术表达式的运算；另一种方法就是借助控制流，即\textit{用程序中的位置来表示布尔表达式的值}，适用于短路计算的情况。
-		\subsection{控制流语句的翻译}
+			实现布尔表达式有两种方法：将真和假数值化，这样布尔表达式的计算就类似于算术表达式的运算（完全计算）；另一种方法就是借助控制流，即\textit{用程序中的位置来表示布尔表达式的值}，适用于短路计算的情况。
+		\subsection{短路代码}
+		在短路（跳转）代码中，布尔运算符$\&\&$、$||$和！被翻译成跳转指令。运算符本身不出现在代码中，布尔表达式的值是通过代码序列中的位置来表示的。\par
+		短路运算是指，当通过逻辑运算符的左操作数就已经可以判断此表达式的值时，代码就不会再进入右边的代码块了。此称为短路运算。在短路运算中，上面三个布尔运算符所起到的逻辑作用在中间代码块中由转移语句 \texttt{goto} 来实现。\par
+		例如语句
+		\begin{quote}
+			$if(x<100 || x>200 \&\& x!=y) x=0;$
+		\end{quote}
+		可以被翻译成如下所示的代码：
+\begin{verbatim}
+    if x < 100 goto L2
+    ifFalse x > 100 goto L1
+    ifFalse x != y goto L1
+L1:	x = 0
+L2:
+\end{verbatim}
+		在这个翻译中，如果程序的控制流到达L2，就表示这个表达式为真；如果表达式为假，则程序控制流将跳过L2块（包含了赋值语句），直接转到L1
+	\section{控制流语句的翻译}
+			将控制流语句翻译成其语义规则（SDT）分为两部分：对使用的各标签的定义；使用标签完成对产生式左值代码段的分段跳转式构造。这里对后者稍作解释：就像一个汇编文件一样，控制流语句会将代码进行分块处理，各个块之间会有跳转的逻辑联系。这些逻辑联系由继承属性$bb.next$或者强制跳转语句 \verb|goto| 来定义，而强制跳转语句将被显式地写入到对$S.code$的构造当中\par
+			先来说两个龙书上面的简单控制流语句及其语义规则：
+			\[P\to S\mbox{ 和 }S\to\mathbf{assign}\]
+			前者的语义规则为
+			\[\begin{gathered}
+				S.next=newlabel()\\
+				P.code = S.code\parallel label(S.next)
+			\end{gathered}\]
+			而后者的语义规则为
+			\[S.code=\mathbf{assign}.code\]\par
 			控制流语句（if-then、if-then-else、while-do、顺序执行）由下面的文法产生（B是布尔表达式）：
 			\[\begin{aligned}
 				S\to
@@ -775,8 +846,133 @@ void type()
 				S_1.next=S.next\\
 				S.code=B.code\parallel gen(B.true,':')\parallel S_1.code
 			\end{gathered}\]
-		\subsection{带有else的语句的中间代码生成}
+		\subsection{带有else的语句的中间代码生成SDD}
 			考虑带来else的语句$S\to\mathbf{if}\ B\ \mathbf{then}\ S_1\ \mathbf{else}\ S_2$。\par
-			对布尔表达式B，用两个标号$B.true$和$B.false$分别表示B为真和为假时控制流应该转向的标号，这两个属性由B的上下文决定。注意在$S_1.code$的后面由$\mathrm{goto}\ S.next$，这条指令是需要的，因为$S_1$执行结束意味着$S$执行结束，并且当$S_1$是赋值语句的时候肯定会执行这条指令
+			对布尔表达式B，用两个标号$B.true$和$B.false$分别表示B为真和为假时控制流应该转向的标号，这两个属性由B的上下文决定。注意在$S_1.code$的后面有$\mathrm{'goto'}\ ,S.next$，这条指令是需要的，因为$S_1$执行结束意味着$S$执行结束，并且当$S_1$是赋值语句的时候肯定会执行这条指令。\par
+			（我觉得这块紫书说的不如龙书清楚…下面是龙书上的表述）由于布尔表达式中有一些向外跳转的指令，他们在B为真时跳转到$S_1$代码的第一条指令；B为假时跳转到$S_2$的代码的第一条指令。然后，控制流从$S_1$或者$S_2$跳转到紧跟在S的代码之后的三地址指令——该指令的标号由继承属性$S.next$指定。在$S_1$的代码之后有一条$goto\ S.next$指令，使得控制流越过$S_2$的代码。$S_2$的代码之后不需要$goto$语句，因为$S_2.next$就是$S.next$。语义规则如下：
+			\[\begin{gathered}
+				B.true = newlabel()\\
+				B.false = newlabel()\\
+				S_1.next = S.next\\
+				S_2.next = S.next\\
+				S.code = B.code\parallel label(B.true)\parallel S_1.code\parallel gen('goto'\ S.next)\parallel label(B.false)\parallel S_2.code
+			\end{gathered}\]
+		\subsection{while语句的中间代码生成SDD}
+			while语句从逻辑上像是纯if语句的改版。while同样由$B.code$和$S_1.code$组成。由于循环的需要，在这个while语句的第一条指令上附加一个标号$begin$。与if-else中的处理类似，在$S_1$的末尾需要一条$goto$语句来重新回到$begin$（总之记住只要不是顺序执行的就要加goto去跳转。{\color[HTML]{FF0000}这块待议，为什么从$B.code$跳转到$B.false$就不需要加goto呢？}）。语义规则如下：
+			\[\begin{gathered}
+				begin = newlabel()\\
+				B.true = newlabel()\\
+				B.false = S.next\\
+				S_1.next = begin\\
+				S.code = label(begin)\parallel B.code\parallel label(B.true)\parallel S_1.code\parallel gen('goto'\ begin)
+			\end{gathered}\]
+		\subsection{顺序结构中间代码生成SDD}
+			主要思想是“为每一语句$S_1$引入其后的下一条语句的标号”。语义规则如下：
+			\[\begin{gathered}
+				S_1.next = newlabel()\\
+				S_2.next = S.next\\
+				S.code = S_1.code\parallel label(S_1.next)\parallel S_2.code
+			\end{gathered}\]
+	\section{布尔表达式的控制流翻译}
+		针对布尔表达式的语义规则是对于上一节中语句的语义规则的一个补充，$i.e.$上面的中间代码中的B部分即为这一节中要讨论的布尔表达式。一个布尔表达式B被翻译成\sout{一个}一组三地址指令，它将使用条件或无条件跳转指令来对B求值。这些跳转指令对目标是两个标号之一：当B为真时是$B.true$，反之$B.false$
+		\paragraph{用控制流来实现计算}
+			原则有两个： \circled{1} 布尔运算符and, or, not不出现在翻译后的代码中 \circled{2} 用程序中的位置来表示值
+		\subsection{或运算}
+			对于产生式$B\to B_1\parallel B_2$，我们现在用短路计算来进行考虑。如果$B_1$为真，那么我们立刻知道B本身也为真，而不需要再考虑$B_2$，因此$B_1.true$和$B.true$相同。如果$B_1$为假，那么需要对$B_2$求值，因此我们将$B_1.false$设置成$B_2$的代码的第一条指令的标号。这时相当于将表达式$B$的真假决定权交给了$B_2$，于是$B_2$的真假出口分别等于B的真假出口。语义规则如下：\
+			\[\begin{gathered}
+				B_1.true = B.true\\
+				B_1.false = newlabel()\\
+				B_2.true = B.true\\
+				B_2.false = B.false\\
+				B.code = B_1.code\parallel label(B_1.false)\parallel B_2.code
+			\end{gathered}\]
+		\subsection{且运算}
+			产生式$B\to B_1\&\&B_2$的翻译方法类似与$B\to B_1\parallel B_2$。如果$B_1$为假，则B为假；反之考虑$B_2$的真值。其语义规则如下：
+			\[\begin{gathered}
+				B_1.ture = newlabel()\\
+				B_1.false = B.false\\
+				B_2.true = B.true\\
+				B_2.false = B.false\\
+				B.code = B_1.code\parallel label(B_1.true)\parallel B_2.code
+			\end{gathered}\]
+		\subsection{非运算}
+			由于非运算仅有一个操作数，故不需要为$B\to!B_1$产生新的代码，只需要将B中的真假出口对换，就可以得到$B_1$的真假出口。由于没有短路运算，并不需要进行B内部的跳转，也不需要引入新的标记。其语义规则如下：
+			\[\begin{gathered}
+				B_1.true = B.false\\
+				B_1.false = B.true\\
+				B.code = B_1.code
+			\end{gathered}\]
+		\subsection{关系运算（relop）}
+			产生式$B\to E_1\ \mathbf{relop}\ E_2$，其中E就是一个表达式，具有属性$addr$和$code$
+	\section{回填}
+		\begin{figure}[h]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.4]{images/backpatching.pdf}
+			\end{minipage}
+			\caption{标号回填示例}
+		\end{figure}
+		为布尔表达式和控制流语句生成目标代码时，关键问题之一是将一个跳转指令和该指令的目标匹配起来。以表达式$\mathbf{if}(B)S$为例，在生成$goto\ B.false$时，并不知道跳过S应该跳到哪里（因为$S.code$还没有加进来呢）。在前面我们的处理方法是将标号作为继承属性传递到生成相关跳转指令的地方（就是上面的$B.false$）。但是，这样的做法要求再进行一遍处理，将标号和具体地址绑定起来。这两趟分析分别是生成语法树，和深度优先遍历树并计算属性值。\par
+		回填用于解决布尔表达式短路计算翻译中，产生了转移目标不明确的条件或无条件代码的问题。解决方案是当生成跳转指令时，暂时不指定目标地址，当有关目标地址确定后，再填回到翻译代码中。在具体实现时，可以将有相同转移目标的转移代码的编号串起来形成链，可以方便回填目标地址。该list变成了综合属性，可以与LR结合（注：后面的翻译均是与LR结合的语法制导翻译方案）\par
+		对于各层布尔表达式B，维护了两个综合属性：$B.truelist,B.falselist$。truelist是一个包含跳转或条件跳转指令的列表，向其中插入B为真时控制流应当转向的标号。在生成B的代码时，跳转到真或假出口的跳转指令时不完整的，标号字段尚未填写。这些不完整的跳转指令被保存在两个list中。\par
+		具体过程是，首先在生成产生式左值code的过程（就是前面说的那个code的式子，添加指令和组合指令）中对各指令（code）进行标号，在这个过程中goto的标号暂时空着不填。然后在代码段的中间部分插入标记点。都写完之后回填标记点的标号。\par
+
+	\chapter{类型检查}
+		\textit{本节由龙书6.5节和紫书第五章构成。}\par
+		静态的语义分析类型检查，利用逻辑规则分析运算分量的类型与运算符预期是否匹配。主要包括三个层次： \circled{1} 形式化描述类型结构（类型表达式） \circled{2} 判定两个类型相同的依据（类型等价：结构等价和名字等价） \circled{3} 定义一组逻辑规则检查语句或者表达式中是否存在逻辑错误（语法制导翻译方案实现、函数和算符的重载）
+	\section{类型表达式}
+		类型可以是语法的一部分，因此也是结构的。\par
+		基本类型是类型表达式：integer、real、char、boolean、type\_error（出错类型，用于在类型检查中传递错误）、void（无类型，是语句的类型）。可以为类型表达式命名，类（class）名也是类型表达式。\par
+		将类型构造算子作用域类型表达式可以得到新的类型表达式（如array，如果T是类型表达式，N是一个整数，则$array(N, T)$是类型表达式），（又如指针类型构造算子pointer，如果T是类型表达式，则$pointer(T)$是类型表达式），（再如笛卡尔乘积类型构造算子$\times$，如果T1和T2是类型表达式，则$T_1\times T_2$也是类型表达式。主要用于描述列表和元组，如表示函数的参数），（还有函数类型构造算子$\to$，若$T_1, T_2, \cdots, T_n$和$R$是类型表达式，则$T_1\times T_2 \times \cdots \times T_n \to R$也是），（以及记录类型构造算子record。若有标识符$N_1, N_2, \cdots, N_n$ 以及对应的类型表达式$T_1, T_2, \cdots, T_n$，则$record((N_1\times T_1)\times (N_2\times T_2) \times \cdots\times (N_n\times T_n) )$ 也是类型表达式\par
+		\begin{figure}[h]
+			\centering
+			\begin{minipage}{40em}
+				\centering
+				\includegraphics[scale = 0.2]{images/struct_type.PNG}
+			\end{minipage}
+			\caption{记录类型构造算子}
+		\end{figure}
+		\subsection{自动生成类型表达式}
+			即构造类型表达式的SDD。\par
+			首先需要为每个文法符号设置综合属性t和继承属性b。其中t是该符号对应的类型表达式，而b的作用是将类型信息沿着语法树从左向右传递
+		\subsection{构造类型表达式的SDT}
+			语法制导翻译方案就是将对属性值的动作（code）嵌入到表达式中，见（\ref{section:SDT}）。不过在这个过程中会遇到一些问题，比如继承属性的计算就与LR分析不匹配，因此，如果使用LR，就需要改造文法。与前面对goto语句的处理类似，这里也采取了标号方法
+	\section{类型等价}
+		\paragraph{结构等价}
+			如下规则： \circled{1} 两个类型表达式完全相同（当无类型名时）：类型表达式树一样，相同的类型构造符作用于相同的子表达式。 \circled{2} 当有类型名时，用他们所定义的类型表达式代换他们，所得的表达式完全相同（类型定义无环时）
+		\paragraph{名等价}
+			把每一个类型名看成一个可区别的类型，两个类型表达式名字等价当且仅当：他们是相同的基本类型、不进行名字代换就能结构等价\par
+			C语言对除记录(结构体)以外的所有类型使用结构等价，而记录类型用的是名字等价，以避免类型图中的环。下面一个例子：
+			\begin{figure}[h]
+				\centering
+				\begin{minipage}{40em}
+					\centering
+					\includegraphics[scale = 0.4]{images/type_equal.jpg}
+				\end{minipage}
+				\caption{结构体是名等价}
+			\end{figure}
+	\section{类型检查}
+
+	\chapter{与类型相关的中间代码生成}
+		\section{符号表}
+			符号表的使用和修改贯穿了编译的全过程，它存储了各种信息，如变量名、函数名、对象、类、interface、类型信息、占用空间、作用域等。它用于编译过程中的分析与合成： \circled{1} 语义分析：如使用前声明检查、类型检查、确定作用域等 \circled{2} 合成：如类型表达式构造、内存空间分配等
+		\section{声明语句的翻译}
+			声明语句翻译的要点有：
+			\begin{enumerate}
+				\item 分配存储单元：名字、类型、字宽、偏移
+				\item 作用域的管理：过程调用
+				\item 记录类型的管理
+				\item 不产生中间代码指令，但是要更新符号表
+			\end{enumerate}
+			如下例：$T\to integer\mid real\mid array[num]of\ T_1\mid \uparrow T_1$，T可以具有type（变量所具有的类型）、width（该类型数据所占的字节数）、offset（变量的存储偏移地址）
+		\section{作用域的管理}
+			管理作用域（过程嵌套声明）：每个过程内声明的符号要置于该过程的符号表中；方便地找到子过程和父过程对应的符号。\par
+			符号表的特点及数据结构：
+			\begin{enumerate}
+				\item 各过程有各自的符号表:哈希表
+				\item 符号表之间有双向链：父$\to$子:过程中包含哪些子过程定义；子$\to$父:分析完子过程后继续分析父过程
+				\item 维护符号表栈(tblptr)和地址偏移量栈(offset)：保存尚未完成的过程的符号表指针和相对地址
+			\end{enumerate}
 
 \end{document}
